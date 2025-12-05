@@ -16,8 +16,11 @@ var app = builder.Build();
 
 // Configure port - Railway sets PORT environment variable automatically
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-app.Urls.Clear();
-app.Urls.Add($"http://0.0.0.0:{port}");
+if (!string.IsNullOrEmpty(port))
+{
+    app.Urls.Clear();
+    app.Urls.Add($"http://0.0.0.0:{port}");
+}
 
 // Configure the HTTP request pipeline
 app.UseCors();
