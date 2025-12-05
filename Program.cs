@@ -53,8 +53,9 @@ app.MapGet("/api/vehicleinfo", async (string regno, IHttpClientFactory httpClien
         string apiUrl = "https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data";
         
         // Get API key from environment variable (for production) or appsettings.json (for local dev)
+        // Note: Railway will provide this at runtime, not during build
         string apiKey = Environment.GetEnvironmentVariable("RAPIDAPI_KEY") 
-            ?? app.Configuration["RAPIDAPI_KEY"] 
+            ?? (app.Configuration != null ? app.Configuration["RAPIDAPI_KEY"] : null)
             ?? "54f47daecemsh7ab18423f71f4e3p1dbe48jsn657e9b1ecc54";  // Fallback for local development
         
         string apiHost = "rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com";
