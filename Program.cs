@@ -311,11 +311,23 @@ app.MapGet("/api/vehicleinfo", async (string regno, IHttpClientFactory httpClien
 .WithName("GetVehicleInfo");
 
 // Fallback to index.html for SPA routing (must be after API routes)
-app.MapFallbackToFile("index.html", new StaticFileOptions
+// Use explicit fallback to ensure index.html is served
+app.MapFallback(async context =>
 {
-    OnPrepareResponse = ctx =>
+    var webRootPath = app.Environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+    var indexPath = Path.Combine(webRootPath, "index.html");
+    
+    if (File.Exists(indexPath))
     {
-        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.SendFileAsync(indexPath);
+    }
+    else
+    {
+        // If file not found, return a helpful error message
+        context.Response.StatusCode = 404;
+        context.Response.ContentType = "text/plain";
+        await context.Response.WriteAsync($"index.html not found. WebRoot: {webRootPath}, CurrentDir: {Directory.GetCurrentDirectory()}");
     }
 });
 
