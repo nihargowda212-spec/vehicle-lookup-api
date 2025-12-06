@@ -310,6 +310,9 @@ app.MapGet("/api/vehicleinfo", async (string regno, IHttpClientFactory httpClien
 })
 .WithName("GetVehicleInfo");
 
+// Fallback to index.html for SPA routing (must be after API routes)
+app.MapFallbackToFile("index.html");
+
 app.Run();
 
 
