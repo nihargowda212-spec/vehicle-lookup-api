@@ -314,20 +314,65 @@ app.MapGet("/api/vehicleinfo", async (string regno, IHttpClientFactory httpClien
 // Use explicit fallback to ensure index.html is served
 app.MapFallback(async context =>
 {
-    var webRootPath = app.Environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-    var indexPath = Path.Combine(webRootPath, "index.html");
+    var currentDir = Directory.GetCurrentDirectory();
+    var webRootPath = app.Environment.WebRootPath ?? Path.Combine(currentDir, "wwwroot");
     
-    if (File.Exists(indexPath))
+    // Try multiple possible locations
+    var possiblePaths = new[]
+    {
+        Path.Combine(webRootPath, "index.html"),
+        Path.Combine(currentDir, "wwwroot", "index.html"),
+        Path.Combine(currentDir, "index.html"),
+        Path.Combine("/app", "wwwroot", "index.html"),
+        Path.Combine("/app", "out", "wwwroot", "index.html")
+    };
+    
+    string? foundPath = null;
+    foreach (var path in possiblePaths)
+    {
+        if (File.Exists(path))
+        {
+            foundPath = path;
+            break;
+        }
+    }
+    
+    if (foundPath != null)
     {
         context.Response.ContentType = "text/html; charset=utf-8";
-        await context.Response.SendFileAsync(indexPath);
+        await context.Response.SendFileAsync(foundPath);
     }
     else
     {
-        // If file not found, return a helpful error message
+        // If file not found, return a helpful error message with directory listing
         context.Response.StatusCode = 404;
         context.Response.ContentType = "text/plain";
-        await context.Response.WriteAsync($"index.html not found. WebRoot: {webRootPath}, CurrentDir: {Directory.GetCurrentDirectory()}");
+        var errorMsg = $"index.html not found.\nWebRoot: {webRootPath}\nCurrentDir: {currentDir}\n";
+        
+        // List files in current directory and wwwroot if it exists
+        if (Directory.Exists(currentDir))
+        {
+            errorMsg += $"\nFiles in {currentDir}:\n";
+            try
+            {
+                var files = Directory.GetFiles(currentDir).Select(f => Path.GetFileName(f));
+                errorMsg += string.Join("\n", files.Take(10));
+            }
+            catch { }
+        }
+        
+        if (Directory.Exists(webRootPath))
+        {
+            errorMsg += $"\n\nFiles in {webRootPath}:\n";
+            try
+            {
+                var files = Directory.GetFiles(webRootPath).Select(f => Path.GetFileName(f));
+                errorMsg += string.Join("\n", files);
+            }
+            catch { }
+        }
+        
+        await context.Response.WriteAsync(errorMsg);
     }
 });
 
