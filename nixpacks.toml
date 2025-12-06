@@ -4,9 +4,9 @@ nixPkgs = ["dotnet-sdk_8"]
 [phases.build]
 cmds = [
   "dotnet restore VehicleLookup.csproj",
-  "dotnet publish VehicleLookup.csproj -c Release -o /app"
+  "dotnet publish VehicleLookup.csproj -c Release -o out"
 ]
 
 [start]
-cmd = "dotnet /app/VehicleLookup.dll"
+cmd = "dotnet out/VehicleLookup.dll"
 
