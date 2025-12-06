@@ -311,7 +311,13 @@ app.MapGet("/api/vehicleinfo", async (string regno, IHttpClientFactory httpClien
 .WithName("GetVehicleInfo");
 
 // Fallback to index.html for SPA routing (must be after API routes)
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html", new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+    }
+});
 
 app.Run();
 
